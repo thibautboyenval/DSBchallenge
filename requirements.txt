@@ -7,3 +7,5 @@ folium
 ipython
 jupyterlab
 os
+geopy
+tslearn
