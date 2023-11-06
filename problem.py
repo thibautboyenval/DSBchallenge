@@ -86,3 +86,13 @@ def get_transformed_data(path="."):
     X_test = _encode_data(X_test)
     return X_train, y_train, X_test, y_test
 
+def get_transform_eval_data(path="."):
+    data = pd.read_parquet(os.path.join(path, "data", "final_test.parquet"))
+    data = data.sort_values(["date", "counter_name"])
+    data = _encode_data(data)
+    return data
+
+def get_eval_data(path="."):
+    data = pd.read_parquet(os.path.join(path, "data", "final_test.parquet"))
+    data = data.sort_values(["date", "counter_name"])
+    return data
