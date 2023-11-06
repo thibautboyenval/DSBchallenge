@@ -6,6 +6,6 @@ scikit-learn
 folium
 ipython
 jupyterlab
-os
 geopy
 tslearn
+xgboost

@@ -3,6 +3,8 @@ import os
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import TimeSeriesSplit
+from sklearn.preprocessing import LabelEncoder
+
 
 problem_title = "Bike count prediction"
 _target_column_name = "log_bike_count"
@@ -35,3 +37,52 @@ def get_train_data(path="."):
 def get_test_data(path="."):
     f_name = "test.parquet"
     return _read_data(path, f_name)
+
+def _encode_data(X):
+    X = X.copy()
+    X.drop(columns = ['counter_name', 'site_name', 'site_id',
+       'counter_installation_date', 'counter_technical_id',
+       ], inplace=True)
+
+    X.loc[:, "week"] = X["date"].dt.isocalendar().week
+    X.loc[:, "weekday"] = X["date"].dt.weekday
+    X.loc[:, "hour"] = X["date"].dt.hour
+    if "coordinates" in X.columns:
+        X.drop(columns=["coordinates"], inplace=True)
+    le = LabelEncoder()
+    X['counter_id'] = le.fit_transform(X['counter_id'])
+    
+    return X.drop(columns=["date"])
+
+def _encode_data2(X):
+    X = X.copy()
+    X.drop(columns = ['counter_name', 'site_name', 'site_id',
+       'counter_installation_date', 'counter_technical_id',
+       ], inplace=True)
+
+    X.loc[:, "week"] = X["date"].dt.isocalendar().week
+    X.loc[:, "weekday"] = X["date"].dt.weekday
+    X.loc[:, "hour"] = X["date"].dt.hour
+    if "coordinates" in X.columns:
+        X.drop(columns=["coordinates"], inplace=True)
+    le = LabelEncoder()
+    X['counter_id'] = le.fit_transform(X['counter_id'])
+
+    X['week_sin'] = np.sin(2 * np.pi * X['week'] / 53)
+    X['week_cos'] = np.cos(2 * np.pi * X['week'] / 53)
+
+    # Normalize the values to the range [-1, 1]
+    X['week_sin'] = (X['week_sin'] - X['week_sin'].min()) / (X['week_sin'].max() - X['week_sin'].min()) * 2 - 1
+    X['week_cos'] = (X['week_cos'] - X['week_cos'].min()) / (X['week_cos'].max() - X['week_cos'].min()) * 2 - 1
+
+    
+    return X.drop(columns=["date", "week"])
+
+
+def get_transformed_data(path="."):
+    X_train, y_train = get_train_data(path)
+    X_test, y_test = get_test_data(path)
+    X_train = _encode_data(X_train)
+    X_test = _encode_data(X_test)
+    return X_train, y_train, X_test, y_test
+
