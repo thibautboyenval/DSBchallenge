@@ -1,9 +1,15 @@
 import os
-
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.preprocessing import LabelEncoder
+
+from sklearn.preprocessing import FunctionTransformer
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import make_pipeline
+from sklearn.compose import ColumnTransformer
+import xgboost as xgb
 
 
 problem_title = "Bike count prediction"
@@ -88,11 +94,18 @@ def get_transformed_data(path="."):
 
 def get_transform_eval_data(path="."):
     data = pd.read_parquet(os.path.join(path, "data", "final_test.parquet"))
-    data = data.sort_values(["date", "counter_name"])
     data = _encode_data(data)
     return data
 
 def get_eval_data(path="."):
     data = pd.read_parquet(os.path.join(path, "data", "final_test.parquet"))
-    data = data.sort_values(["date", "counter_name"])
     return data
+
+def get_estimator():
+    
+    preprocessor = FunctionTransformer(_encode_data)
+    regressor = xgb.XGBRegressor()
+
+    pipe = make_pipeline(preprocessor, regressor)
+
+    return pipe
